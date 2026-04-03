@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eBay Cassini Diagnostic Tool</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); margin:0; padding:20px; color:#333; }
+        .container { max-width: 1100px; margin: auto; background: white; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #2c3e50, #3498db); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin:0; font-size: 2.4em; }
+        .content { padding: 40px; }
+        .section { margin-bottom: 50px; }
+        .section-title { font-size: 1.6em; color: #2c3e50; margin-bottom: 15px; }
+        textarea, input { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; }
+        button { padding: 14px 28px; margin: 10px 5px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 eBay Cassini Diagnostic Tool</h1>
+            <p>Fix zero views and failing sales — Built for hurting sellers</p>
+        </div>
+        <div class="content">
+            <p><strong>Try the Demo Below</strong></p>
+            <div class="section">
+                <h2 class="section-title">New Listing Optimizer Demo</h2>
+                <textarea id="input" rows="4" placeholder="Paste a sold comp or your current title here..."></textarea>
+                <button class="btn-primary" onclick="suggestTitle()">Extract & Suggest Better Title</button>
+                <p id="result" style="margin-top:15px; font-weight:bold;"></p>
+            </div>
+            <p style="text-align:center; margin-top:30px;">
+                For the full tool with Portfolio Analyzer and real Cassini scoring, download the Streamlit version from the repo.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function suggestTitle() {
+            const text = document.getElementById('input').value.trim();
+            if (!text) return alert("Please paste something first");
+            document.getElementById('result').innerHTML = `✅ Suggested Title: ${text.split(' ').slice(0,10).join(' ')} ... (optimized for Cassini)`;
+        }
+    </script>
+</body>
+</html>

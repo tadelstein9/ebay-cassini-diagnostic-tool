@@ -16,6 +16,7 @@
         button { padding: 14px 32px; margin: 10px 5px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
         .btn-primary { background: #3498db; color: white; }
         .btn-success { background: #27ae60; color: white; }
+        .btn-download { background: #27ae60; color: white; font-size: 1.3em; padding: 18px 40px; margin: 20px auto; display: block; width: fit-content; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background: #f8f9fa; }
@@ -31,7 +32,6 @@
         </div>
 
         <div class="content">
-            <!-- Title Demo -->
             <div class="section">
                 <h2 class="section-title">Try the Demo</h2>
                 <p><strong>Paste a sold listing title or an eBay item number below:</strong></p>
@@ -41,11 +41,9 @@
                 <p id="result" style="margin-top:20px; font-weight:bold; min-height:30px;"></p>
             </div>
 
-            <!-- Portfolio Analyzer Preview -->
             <div class="section">
                 <h2 class="section-title">What the Full App Delivers</h2>
-                <p><strong>Portfolio Analyzer Sample Report</strong> (this is what you get when you upload your Active Listings CSV in the real app)</p>
-                
+                <p><strong>Portfolio Analyzer Sample Report</strong> (this is exactly what you get when you upload your Active Listings CSV)</p>
                 <table>
                     <thead>
                         <tr>
@@ -76,17 +74,13 @@
                         </tr>
                     </tbody>
                 </table>
-                
-                <p style="margin-top:20px; font-size:0.95em; color:#555;">
-                    ✅ In the full app you also get: average score, number of stale listings, exact things to fix, and a downloadable CSV report.
-                </p>
             </div>
 
-            <!-- Final CTA -->
-            <div style="text-align:center; margin-top:60px; padding:30px; background:#f8f9fa; border-radius:10px;">
-                <strong>Want the full version?</strong><br><br>
-                Download the complete Streamlit app (Portfolio Analyzer + real Cassini scoring) from this GitHub repository.<br>
-                See the <strong>README.md</strong> file for simple installation instructions (Windows, Mac, Linux).
+            <div style="text-align:center; margin:60px 0;">
+                <a href="https://github.com/tadelstein9/ebay-cassini-diagnostic-tool/archive/refs/heads/main.zip" target="_blank">
+                    <button class="btn-download">⬇️ Download Full App as ZIP (ready to run)</button>
+                </a>
+                <p style="margin-top:10px; color:#555;">No GitHub account needed • Works on Windows, Mac, and Linux</p>
             </div>
         </div>
     </div>

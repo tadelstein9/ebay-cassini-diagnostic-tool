@@ -28,7 +28,8 @@
         <div class="content">
             <div class="section">
                 <h2 class="section-title">Try the Demo</h2>
-                <textarea id="input" placeholder="Paste a sold comp or your current listing title here..."></textarea>
+                <p><strong>Paste a sold listing title or an eBay item number below:</strong></p>
+                <textarea id="input" placeholder="Example: Rolex Submariner Date 126610LN 41mm Stainless Steel... or item number 298186280493"></textarea>
                 <button class="btn-primary" onclick="suggestTitle()">Extract & Suggest Better Title</button>
                 <button class="btn-success" onclick="copyResult()">Copy Suggested Title</button>
                 <p id="result" style="margin-top:20px; font-weight:bold; min-height:30px;"></p>
@@ -44,16 +45,18 @@
                 </ul>
             </div>
 
-            <p style="text-align:center; margin-top:40px;">
-                <strong>For the full version</strong> with Portfolio Analyzer and real Cassini scoring, download the Streamlit app from this repo.
-            </p>
+            <div style="text-align:center; margin-top:60px; padding:30px; background:#f8f9fa; border-radius:10px;">
+                <strong>Want the full version?</strong><br><br>
+                Download the complete app (with Portfolio Analyzer and real Cassini scoring) from this GitHub repository.<br>
+                See the <strong>README.md</strong> file for simple installation instructions.
+            </div>
         </div>
     </div>
 
     <script>
         function suggestTitle() {
             const text = document.getElementById('input').value.trim();
-            if (!text) return alert("Please paste something first");
+            if (!text) return alert("Please paste a title or item number first");
             document.getElementById('result').innerHTML = `✅ Suggested Title: ${text.split(' ').slice(0,10).join(' ')} ... (optimized for Cassini)`;
         }
         function copyResult() {

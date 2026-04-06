@@ -37,28 +37,28 @@ with tab2:
             st.dataframe(
                 results[display_cols],
                 use_container_width=True,
-                hide_index=True   # Safer way to hide the row index
+                hide_index=True
             )
         else:
             st.warning("No expected columns found. Showing all columns instead.")
             st.dataframe(results, use_container_width=True, hide_index=True)
         
-        # Narrative Summary
+        # Narrative Summary - Universal version
         if 'Cassini Score' in results.columns:
             avg_score = results['Cassini Score'].mean()
             st.subheader("Summary & Action Plan")
             st.markdown(f"""
             **Your average Cassini score:** `{avg_score:.0f}/100`
 
-            **Biggest quick win:** Add **"New without tags"** at the end of titles and move your strongest keywords to the front (Waldemar, Double Albert, Arnex, Unitas 6498, etc.).
+            **Biggest quick win:** Add **"New without tags"** at the end of your titles and front-load strong buyer keywords (such as Waldemar, Double Albert, Arnex, or Unitas 6498).
 
             **Recommended Action Today:**
-            1. Start with the top 10–12 listings in the table above.
+            1. Start with the top 10–12 lowest-scoring listings shown above.
             2. Use **Sell Similar** on eBay and paste the Suggested Title.
-            3. Add "New without tags" in the description if needed.
-            4. Turn on Promoted Listings (5–8%) for your strongest items.
-            
-            These changes should raise many listings from the 40-60 range up to 75+ and help replicate your recent strong weekend sales.
+            3. Make sure "New without tags" also appears naturally in the description.
+            4. Turn on Promoted Listings at 5–8% for your strongest items (especially chains and watches).
+
+            These simple title improvements typically boost visibility and help more listings appear in relevant buyer searches.
             """)
     else:
         st.info("↑ Upload your CSV file on the first tab to see prioritized fixes.")

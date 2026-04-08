@@ -3,6 +3,97 @@ import pandas as pd
 from datetime import datetime
 from cassini_analyzer import analyze_listings
 
+st.set_page_config(
+    page_title="Cassini Tool",
+    layout="wide",
+    page_icon="📈"
+)
+
+st.title("📈 Cassini Tool")
+st.markdown("**Helping eBay sellers improve titles and increase sales**")
+
+tab1, tab2, tab3, tab4 = st.tabs(["1. Upload CSV", "2. Prioritized Fix List", "3. Download CSV", "4. 📄 Full Report"])
+
+with tab1:
+    st.subheader("Step 1: Upload your CSV")
+    st.info("Export your Active Listings from eBay Seller Hub → Upload the CSV here.")
+    uploaded_file = st.file_uploader("Choose CSV file", type=["csv"])
+    if uploaded_file is not None:
+        with st.spinner("Analyzing your listings..."):
+            df = pd.read_csv(uploaded_file)
+            results = analyze_listings(df)
+            st.session_state['results'] = results
+            st.session_state['df_raw'] = df
+        st.success(f"✅ Successfully analyzed {len(results)} listings!")
+
+with tab2:
+    results = st.session_state.get('results', None)
+    if results is not None and not results.empty:
+        st.subheader("Prioritized Fix List (Fix Lowest Scores First)")
+        available_cols = ['Priority', 'Title', 'Cassini Score', 'Main Issue', 'Suggested Title']
+        display_cols = [col for col in available_cols if col in results.columns]
+        if display_cols:
+            st.dataframe(results[display_cols], use_container_width=True, hide_index=True)
+        else:
+            st.dataframe(results, use_container_width=True, hide_index=True)
+        if 'Cassini Score' in results.columns:
+            avg_score = results['Cassini Score'].mean()
+            st.subheader("Summary & Action Plan")
+            st.markdown(f"""
+            **Your average Cassini score:** `{avg_score:.0f}/100`
+
+            **Biggest quick win:** Add **"New without tags"** at the end of your titles and front-load strong buyer keywords (such as Waldemar, Double Albert, Arnex, or Unitas 6498).
+
+            **Recommended Action Today:**
+            1. Start with the top 10–12 lowest-scoring listings shown above.
+            2. Use **Sell Similar** on eBay and paste the Suggested Title.
+            3. Make sure "New without tags" also appears naturally in the description.
+            4. Turn on Promoted Listings at 5–8% for your strongest items (especially chains and watches).
+            """)
+    else:
+        st.info("↑ Upload your CSV file on the first tab to see prioritized fixes.")
+
+with tab3:
+    results = st.session_state.get('results', None)
+    if results is not None and not results.empty:
+        st.subheader("Export Raw Data as CSV")
+        csv = results.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download Full Report as CSV",
+            data=csv,
+            file_name="cassini_recommendations.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+        st.info("**Mobile / iPad users:** Open the downloaded CSV in Google Sheets or Excel → Share → Print → Save as PDF.")
+        st.caption("Built for USWatchMasters • Helping the eBay community")
+    else:
+        st.info("Upload a CSV first to generate your report.")
+
+with tab4:
+    results = st.session_state.get('results', None)
+    df_raw = st.session_state.get('df_raw', None)
+
+    if results is not None and not results.empty and df_raw is not None:
+        st.subheader("Full Diagnostic Report")
+        st.markdown("A formatted HTML report you can open in any browser, print, or share. Every listing gets a score, plain-English explanation, and suggested title.")
+
+        if st.button("Generate Full Report", type="primary", use_container_width=True):
+            with st.spinner("Building your report..."):
+                html = generate_html_report(df_raw)
+            st.download_button(
+                label="📄 Download HTML Report",
+                data=html,
+                file_name="cassini_diagnostic_report.html",
+                mime="text/html",
+                use_container_width=True
+            )
+            st.success("Report ready. Open it in any browser — Chrome, Firefox, Safari, Edge.")
+            st.info("**To print or save as PDF:** Open the HTML file → File → Print → Save as PDF")
+    else:
+        st.info("↑ Upload your CSV file on the first tab to generate the full report.")
+
+
 # ---------------------------------------------------------------------------
 # Report Generator
 # ---------------------------------------------------------------------------
@@ -28,10 +119,33 @@ def cassini_score_row(row):
         actions.append("Rewrite title completely. Must be 60–80 chars with strongest keywords first.")
 
     # 2. Power keywords (25 pts)
-    power_kw = [
-        'waldemar', 'double albert', 'unitas', 'arnex', '6498', '6497',
-        'pt5000', 'flieger', 'pilot', 'pocket watch chain', 'swivel', 'fob'
-    ]
+    category_field = str(row.get('eBay category 1 name', '') or '').lower()
+    combined = category_field + ' ' + title.lower()
+
+    if any(w in combined for w in ['tool', 'repair kit', 'watchmaker', 'horolog']):
+        power_kw = [
+            'bergeon', 'watchmaker', 'horological', 'pegwood', 'arkansas',
+            'precision', 'repair', 'mainspring', 'rodico', 'presto',
+            'timing', 'jeweling', 'epilame', 'staking', 'lathe'
+        ]
+    elif any(w in combined for w in ['cloth', 'shirt', 'dress', 'fashion', 'shoe']):
+        power_kw = ['vintage', 'designer', 'nwt', 'wool', 'leather', 'silk',
+                    'made in usa', 'deadstock', '1950s', '1960s', '1970s', '1980s']
+    elif any(w in combined for w in ['card', 'pokemon', 'sport', 'trading']):
+        power_kw = ['psa', 'bgs', 'graded', 'rookie', 'refractor', 'autograph',
+                    'numbered', 'holographic', 'mint', 'gem mint', '1st edition']
+    elif any(w in combined for w in ['coin', 'stamp', 'bullion', 'currency']):
+        power_kw = ['pcgs', 'ngc', 'proof', 'uncirculated', 'silver', 'gold',
+                    'key date', 'mint mark', 'error', 'toned']
+    elif any(w in combined for w in ['phone', 'laptop', 'tablet', 'electronic', 'camera']):
+        power_kw = ['unlocked', 'tested working', 'original', 'oem', '4k',
+                    'bluetooth', 'usb-c', 'fast charging', 'mint condition']
+    else:
+        power_kw = [
+            'waldemar', 'double albert', 'unitas', 'arnex', '6498', '6497',
+            'pt5000', 'flieger', 'pilot', 'pocket watch chain', 'swivel', 'fob',
+            'vintage', 'sterling silver', 'gold filled', 'hallmark', 'signed'
+        ]
     found_kw = [kw for kw in power_kw if kw.lower() in title.lower()]
     if len(found_kw) >= 2:
         score += 25
@@ -81,20 +195,41 @@ def cassini_score_row(row):
 
 
 def suggest_title(title, found_kw, tlen):
-    """Generate a suggested title improvement."""
-    if 'waldemar' in title.lower() and tlen < 70:
-        return title.rstrip() + ' New without tags'
-    if 'double albert' in title.lower() and tlen < 70:
-        return title.rstrip() + ' New without tags'
-    if 'pocket watch chain' in title.lower() and tlen < 65:
-        return title.rstrip() + ' New without tags'
-    if any(w in title.lower() for w in ['cleaning', 'putty', 'pegwood']):
-        return 'Watchmaker Cleaning Putty Pegwood Stick Set Watch Repair Tools New without tags'
-    if any(w in title.lower() for w in ['winding', 'arbor', 'bergeon']):
-        return title.rstrip() + ' Watchmaker Tool New without tags'
+    """Generate a suggested title improvement. Always caps at 80 chars."""
+    t_lower = title.lower()
+
+    def cap(s):
+        """Smart cap — truncate base then append condition if needed."""
+        append = ' New without tags'
+        if len(s) <= 80:
+            return s[:80]
+        # already has condition signal
+        return s[:80]
+
+    def add_condition(s):
+        """Append condition signal, respecting 80-char limit."""
+        append = ' New without tags'
+        if len(s) + len(append) <= 80:
+            return (s.rstrip() + append).strip()
+        return (s[:80 - len(append)].rstrip() + append).strip()
+
+    if 'waldemar' in t_lower and tlen < 70:
+        return add_condition(title.rstrip())
+    if 'double albert' in t_lower and tlen < 70:
+        return add_condition(title.rstrip())
+    if 'pocket watch chain' in t_lower and tlen < 65:
+        return add_condition(title.rstrip())
+    if any(w in t_lower for w in ['cleaning', 'putty', 'pegwood']):
+        return 'Watchmaker Cleaning Putty Pegwood Stick Set Watch Repair Tools New without tags'[:80]
+    if any(w in t_lower for w in ['winding', 'arbor', 'bergeon']):
+        return add_condition(title.rstrip())
+    if any(w in t_lower for w in ['crown winder', 'setting tool', 'hand remover',
+                                    'pin remover', 'bracelet', 'acrylic', 'display stand',
+                                    'alcohol burner', 'arkansas stone']):
+        return add_condition(title.rstrip())
     if tlen < 60:
-        return title.rstrip() + ' New without tags'
-    return title
+        return add_condition(title.rstrip())
+    return title[:80]
 
 
 def generate_html_report(df):
@@ -135,7 +270,7 @@ def generate_html_report(df):
 
         scored.append({
             'item_id': item_id, 'title': title, 'tlen': tlen,
-            'price': price, 'sold': sold, 'revenue': revenue,
+            'price': price if price and price > 0 else None, 'sold': sold, 'revenue': revenue,
             'watchers': watchers, 'category': category, 'condition': condition,
             'score': score, 'priority': priority,
             'gaps': gaps, 'actions': actions,
@@ -267,7 +402,7 @@ a.il:hover{text-decoration:underline}
           </div>
           <div class="lm">
             <div class="mi"><strong>Item:</strong> <a class="il" href="https://www.ebay.com/itm/{r['item_id']}" target="_blank">{r['item_id']}</a></div>
-            <div class="mi"><strong>Price:</strong> ${r['price']:.2f}</div>
+            <div class="mi"><strong>Price:</strong> {'$' + f"{r['price']:.2f}" if r.get('price') else '—'}</div>
             <div class="mi"><strong>Sold:</strong> {r['sold']}</div>
             <div class="mi"><strong>Watchers:</strong> {r['watchers']}</div>
             <div class="mi"><strong>Title Length:</strong> {r['tlen']} chars</div>
@@ -366,94 +501,3 @@ a.il:hover{text-decoration:underline}
 </html>"""
 
     return html.encode('utf-8')
-
-
-st.set_page_config(
-    page_title="Cassini Tool",
-    layout="wide",
-    page_icon="📈"
-)
-
-st.title("📈 Cassini Tool")
-st.markdown("**Helping eBay sellers improve titles and increase sales**")
-
-tab1, tab2, tab3, tab4 = st.tabs(["1. Upload CSV", "2. Prioritized Fix List", "3. Download CSV", "4. 📄 Full Report"])
-
-with tab1:
-    st.subheader("Step 1: Upload your CSV")
-    st.info("Export your Active Listings from eBay Seller Hub → Upload the CSV here.")
-    uploaded_file = st.file_uploader("Choose CSV file", type=["csv"])
-    if uploaded_file is not None:
-        with st.spinner("Analyzing your listings..."):
-            df = pd.read_csv(uploaded_file)
-            results = analyze_listings(df)
-            st.session_state['results'] = results
-            st.session_state['df_raw'] = df
-        st.success(f"✅ Successfully analyzed {len(results)} listings!")
-
-with tab2:
-    results = st.session_state.get('results', None)
-    if results is not None and not results.empty:
-        st.subheader("Prioritized Fix List (Fix Lowest Scores First)")
-        available_cols = ['Priority', 'Title', 'Cassini Score', 'Main Issue', 'Suggested Title']
-        display_cols = [col for col in available_cols if col in results.columns]
-        if display_cols:
-            st.dataframe(results[display_cols], use_container_width=True, hide_index=True)
-        else:
-            st.dataframe(results, use_container_width=True, hide_index=True)
-        if 'Cassini Score' in results.columns:
-            avg_score = results['Cassini Score'].mean()
-            st.subheader("Summary & Action Plan")
-            st.markdown(f"""
-            **Your average Cassini score:** `{avg_score:.0f}/100`
-
-            **Biggest quick win:** Add **"New without tags"** at the end of your titles and front-load strong buyer keywords (such as Waldemar, Double Albert, Arnex, or Unitas 6498).
-
-            **Recommended Action Today:**
-            1. Start with the top 10–12 lowest-scoring listings shown above.
-            2. Use **Sell Similar** on eBay and paste the Suggested Title.
-            3. Make sure "New without tags" also appears naturally in the description.
-            4. Turn on Promoted Listings at 5–8% for your strongest items (especially chains and watches).
-            """)
-    else:
-        st.info("↑ Upload your CSV file on the first tab to see prioritized fixes.")
-
-with tab3:
-    results = st.session_state.get('results', None)
-    if results is not None and not results.empty:
-        st.subheader("Export Raw Data as CSV")
-        csv = results.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Download Full Report as CSV",
-            data=csv,
-            file_name="cassini_recommendations.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
-        st.info("**Mobile / iPad users:** Open the downloaded CSV in Google Sheets or Excel → Share → Print → Save as PDF.")
-        st.caption("Built for USWatchMasters • Helping the eBay community")
-    else:
-        st.info("Upload a CSV first to generate your report.")
-
-with tab4:
-    results = st.session_state.get('results', None)
-    df_raw = st.session_state.get('df_raw', None)
-
-    if results is not None and not results.empty and df_raw is not None:
-        st.subheader("Full Diagnostic Report")
-        st.markdown("A formatted HTML report you can open in any browser, print, or share. Every listing gets a score, plain-English explanation, and suggested title.")
-
-        if st.button("Generate Full Report", type="primary", use_container_width=True):
-            with st.spinner("Building your report..."):
-                html = generate_html_report(df_raw)
-            st.download_button(
-                label="📄 Download HTML Report",
-                data=html,
-                file_name="cassini_diagnostic_report.html",
-                mime="text/html",
-                use_container_width=True
-            )
-            st.success("Report ready. Open it in any browser — Chrome, Firefox, Safari, Edge.")
-            st.info("**To print or save as PDF:** Open the HTML file → File → Print → Save as PDF")
-    else:
-        st.info("↑ Upload your CSV file on the first tab to generate the full report.")

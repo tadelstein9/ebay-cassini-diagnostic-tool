@@ -3,97 +3,6 @@ import pandas as pd
 from datetime import datetime
 from cassini_analyzer import analyze_listings
 
-st.set_page_config(
-    page_title="Cassini Tool",
-    layout="wide",
-    page_icon="📈"
-)
-
-st.title("📈 Cassini Tool")
-st.markdown("**Helping eBay sellers improve titles and increase sales**")
-
-tab1, tab2, tab3, tab4 = st.tabs(["1. Upload CSV", "2. Prioritized Fix List", "3. Download CSV", "4. 📄 Full Report"])
-
-with tab1:
-    st.subheader("Step 1: Upload your CSV")
-    st.info("Export your Active Listings from eBay Seller Hub → Upload the CSV here.")
-    uploaded_file = st.file_uploader("Choose CSV file", type=["csv"])
-    if uploaded_file is not None:
-        with st.spinner("Analyzing your listings..."):
-            df = pd.read_csv(uploaded_file)
-            results = analyze_listings(df)
-            st.session_state['results'] = results
-            st.session_state['df_raw'] = df
-        st.success(f"✅ Successfully analyzed {len(results)} listings!")
-
-with tab2:
-    results = st.session_state.get('results', None)
-    if results is not None and not results.empty:
-        st.subheader("Prioritized Fix List (Fix Lowest Scores First)")
-        available_cols = ['Priority', 'Title', 'Cassini Score', 'Main Issue', 'Suggested Title']
-        display_cols = [col for col in available_cols if col in results.columns]
-        if display_cols:
-            st.dataframe(results[display_cols], use_container_width=True, hide_index=True)
-        else:
-            st.dataframe(results, use_container_width=True, hide_index=True)
-        if 'Cassini Score' in results.columns:
-            avg_score = results['Cassini Score'].mean()
-            st.subheader("Summary & Action Plan")
-            st.markdown(f"""
-            **Your average Cassini score:** `{avg_score:.0f}/100`
-
-            **Biggest quick win:** Add **"New without tags"** at the end of your titles and front-load strong buyer keywords (such as Waldemar, Double Albert, Arnex, or Unitas 6498).
-
-            **Recommended Action Today:**
-            1. Start with the top 10–12 lowest-scoring listings shown above.
-            2. Use **Sell Similar** on eBay and paste the Suggested Title.
-            3. Make sure "New without tags" also appears naturally in the description.
-            4. Turn on Promoted Listings at 5–8% for your strongest items (especially chains and watches).
-            """)
-    else:
-        st.info("↑ Upload your CSV file on the first tab to see prioritized fixes.")
-
-with tab3:
-    results = st.session_state.get('results', None)
-    if results is not None and not results.empty:
-        st.subheader("Export Raw Data as CSV")
-        csv = results.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Download Full Report as CSV",
-            data=csv,
-            file_name="cassini_recommendations.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
-        st.info("**Mobile / iPad users:** Open the downloaded CSV in Google Sheets or Excel → Share → Print → Save as PDF.")
-        st.caption("Built for USWatchMasters • Helping the eBay community")
-    else:
-        st.info("Upload a CSV first to generate your report.")
-
-with tab4:
-    results = st.session_state.get('results', None)
-    df_raw = st.session_state.get('df_raw', None)
-
-    if results is not None and not results.empty and df_raw is not None:
-        st.subheader("Full Diagnostic Report")
-        st.markdown("A formatted HTML report you can open in any browser, print, or share. Every listing gets a score, plain-English explanation, and suggested title.")
-
-        if st.button("Generate Full Report", type="primary", use_container_width=True):
-            with st.spinner("Building your report..."):
-                html = generate_html_report(df_raw)
-            st.download_button(
-                label="📄 Download HTML Report",
-                data=html,
-                file_name="cassini_diagnostic_report.html",
-                mime="text/html",
-                use_container_width=True
-            )
-            st.success("Report ready. Open it in any browser — Chrome, Firefox, Safari, Edge.")
-            st.info("**To print or save as PDF:** Open the HTML file → File → Print → Save as PDF")
-    else:
-        st.info("↑ Upload your CSV file on the first tab to generate the full report.")
-
-
 # ---------------------------------------------------------------------------
 # Report Generator
 # ---------------------------------------------------------------------------
@@ -457,3 +366,94 @@ a.il:hover{text-decoration:underline}
 </html>"""
 
     return html.encode('utf-8')
+
+
+st.set_page_config(
+    page_title="Cassini Tool",
+    layout="wide",
+    page_icon="📈"
+)
+
+st.title("📈 Cassini Tool")
+st.markdown("**Helping eBay sellers improve titles and increase sales**")
+
+tab1, tab2, tab3, tab4 = st.tabs(["1. Upload CSV", "2. Prioritized Fix List", "3. Download CSV", "4. 📄 Full Report"])
+
+with tab1:
+    st.subheader("Step 1: Upload your CSV")
+    st.info("Export your Active Listings from eBay Seller Hub → Upload the CSV here.")
+    uploaded_file = st.file_uploader("Choose CSV file", type=["csv"])
+    if uploaded_file is not None:
+        with st.spinner("Analyzing your listings..."):
+            df = pd.read_csv(uploaded_file)
+            results = analyze_listings(df)
+            st.session_state['results'] = results
+            st.session_state['df_raw'] = df
+        st.success(f"✅ Successfully analyzed {len(results)} listings!")
+
+with tab2:
+    results = st.session_state.get('results', None)
+    if results is not None and not results.empty:
+        st.subheader("Prioritized Fix List (Fix Lowest Scores First)")
+        available_cols = ['Priority', 'Title', 'Cassini Score', 'Main Issue', 'Suggested Title']
+        display_cols = [col for col in available_cols if col in results.columns]
+        if display_cols:
+            st.dataframe(results[display_cols], use_container_width=True, hide_index=True)
+        else:
+            st.dataframe(results, use_container_width=True, hide_index=True)
+        if 'Cassini Score' in results.columns:
+            avg_score = results['Cassini Score'].mean()
+            st.subheader("Summary & Action Plan")
+            st.markdown(f"""
+            **Your average Cassini score:** `{avg_score:.0f}/100`
+
+            **Biggest quick win:** Add **"New without tags"** at the end of your titles and front-load strong buyer keywords (such as Waldemar, Double Albert, Arnex, or Unitas 6498).
+
+            **Recommended Action Today:**
+            1. Start with the top 10–12 lowest-scoring listings shown above.
+            2. Use **Sell Similar** on eBay and paste the Suggested Title.
+            3. Make sure "New without tags" also appears naturally in the description.
+            4. Turn on Promoted Listings at 5–8% for your strongest items (especially chains and watches).
+            """)
+    else:
+        st.info("↑ Upload your CSV file on the first tab to see prioritized fixes.")
+
+with tab3:
+    results = st.session_state.get('results', None)
+    if results is not None and not results.empty:
+        st.subheader("Export Raw Data as CSV")
+        csv = results.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download Full Report as CSV",
+            data=csv,
+            file_name="cassini_recommendations.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+        st.info("**Mobile / iPad users:** Open the downloaded CSV in Google Sheets or Excel → Share → Print → Save as PDF.")
+        st.caption("Built for USWatchMasters • Helping the eBay community")
+    else:
+        st.info("Upload a CSV first to generate your report.")
+
+with tab4:
+    results = st.session_state.get('results', None)
+    df_raw = st.session_state.get('df_raw', None)
+
+    if results is not None and not results.empty and df_raw is not None:
+        st.subheader("Full Diagnostic Report")
+        st.markdown("A formatted HTML report you can open in any browser, print, or share. Every listing gets a score, plain-English explanation, and suggested title.")
+
+        if st.button("Generate Full Report", type="primary", use_container_width=True):
+            with st.spinner("Building your report..."):
+                html = generate_html_report(df_raw)
+            st.download_button(
+                label="📄 Download HTML Report",
+                data=html,
+                file_name="cassini_diagnostic_report.html",
+                mime="text/html",
+                use_container_width=True
+            )
+            st.success("Report ready. Open it in any browser — Chrome, Firefox, Safari, Edge.")
+            st.info("**To print or save as PDF:** Open the HTML file → File → Print → Save as PDF")
+    else:
+        st.info("↑ Upload your CSV file on the first tab to generate the full report.")

@@ -1,5 +1,5 @@
 # cassini_analyzer.py
-# Version 4.0 - Multi-category support
+# Version 4.1 - Fixed title length cap, tools keywords, price display
 # April 08, 2026
 
 import pandas as pd
@@ -43,7 +43,10 @@ CATEGORY_KEYWORDS = {
         "usa made", "vintage", "working", "restored", "professional grade",
         "heavy duty", "set", "lot", "complete", "original", "rare",
         "machinist", "watchmaker", "jeweler", "craftsman", "snap-on",
-        "proto", "starrett", "mitutoyo"
+        "proto", "starrett", "mitutoyo", "bergeon", "horological",
+        "arkansas stone", "pegwood", "watchmaker tool", "repair kit",
+        "precision", "swiss made", "timing", "mainspring", "balance wheel",
+        "jeweling", "staking", "lathe", "presto", "rodico", "epilame"
     ],
     "books_media": [
         "first edition", "signed", "hardcover", "rare", "out of print",
@@ -203,7 +206,10 @@ def calculate_cassini_score(row):
 
     # 5. Generate suggested title
     suggested = generate_suggested_title(title, t_lower, category, strong_keywords)
-    suggested = suggested[:80]
+    # Smart title truncation — never exceed 80 chars
+    # If appending condition makes it too long, truncate base first then append
+    if len(suggested) > 80:
+        suggested = suggested[:80]
 
     score = max(15, min(100, score))
 
@@ -226,7 +232,7 @@ def calculate_cassini_score(row):
         "Issues": " | ".join(issues) if issues else "Strong baseline",
         "Fixes": " | ".join(fixes) if fixes else "Ready to promote",
         "Available Qty": row.get("Available Qty", ""),
-        "Price": row.get("Price", ""),
+        "Price": row.get("Price", "") if float(row.get("Price", 0) or 0) > 0 else "—",
         "Views": views,
         "Watchers": watchers,
         "Item number": row.get("Item number", ""),
@@ -264,11 +270,16 @@ def generate_suggested_title(title, t_lower, category, strong_keywords):
         if len(title) < 60:
             suggested = title.rstrip() + " Vintage Excellent Condition"
 
-    # Add condition signal if missing
+    # Add condition signal if missing — only if it fits within 80 chars
     condition_words = ["new without tags", "new with tags", "mint", "excellent",
                        "tested", "graded", "serviced", "nwt"]
     if not any(w in t_lower for w in condition_words):
-        suggested = (suggested + " New without tags").strip()
+        append = " New without tags"
+        if len(suggested) + len(append) <= 80:
+            suggested = (suggested + append).strip()
+        else:
+            # Truncate base to make room for condition signal
+            suggested = (suggested[:80 - len(append)].strip() + append).strip()
 
     return suggested[:80]
 
